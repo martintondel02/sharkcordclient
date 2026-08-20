@@ -1,0 +1,36 @@
+# Rust
+/target
+**/target
+Cargo.lock.bak
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+*.swp
+.DS_Store
+Thumbs.db
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/*.keystore
+android/*.jks
+android/app/src/main/jniLibs/*/libsharkcord_core.so
+
+# Desktop build artifacts
+desktop/dist/
+*.AppImage
+*.flatpak
+*.msi
+
+# Local dev / secrets
+.env
+.env.*
+!.env.example
+config.local.toml
+
+# Integration test scratch
+.scratch/
