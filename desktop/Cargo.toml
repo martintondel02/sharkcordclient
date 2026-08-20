@@ -1,6 +1,6 @@
 [package]
 name = "sharkcord-desktop"
-description = "Slint desktop app (Linux + Windows) for the unofficial sharkcordclient."
+description = "egui desktop app (Linux + Windows) for the unofficial sharkcordclient."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -14,12 +14,13 @@ workspace = true
 
 [dependencies]
 sharkcord-core = { path = "../core" }
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-# Slint UI is added in Phase 1 once we render the connect screen.
-# slint = "1"
+# egui immediate-mode GUI (MIT-licensed), keeps the whole app MIT.
+eframe = "0.31"
+egui = "0.31"
 
 [[bin]]
 name = "sharkcord-desktop"

@@ -1,24 +1,38 @@
-//! `sharkcord-desktop` — Slint desktop app (Linux + Windows) for the
+//! `sharkcord-desktop` — egui desktop app (Linux + Windows) for the
 //! unofficial sharkcordclient.
 //!
-//! Phase 0: a placeholder binary that boots the async runtime and prints
-//! the target protocol version, proving the workspace builds end-to-end.
-//! Phase 1 replaces this with the Slint window + connect screen.
+//! Phase 1: connect screen + server view (channel sidebar + text channel
+//! with message list and composer). Voice (Phase 2) is wired next.
 
-use sharkcord_core::compat;
+use eframe::egui;
+use sharkcord_core::ffi::Client;
 
-#[tokio::main]
-async fn main() {
+mod observer;
+mod ui;
+
+/// Entry point.
+fn main() -> Result<(), eframe::Error> {
     tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
+        )
         .init();
 
-    tracing::info!(
-        target_protocol_version = compat::target_version(),
-        "sharkcord-desktop starting (Phase 0 placeholder; Slint UI lands in Phase 1)"
-    );
-    tracing::info!("Run a Sharkcord server locally with:");
-    tracing::info!(
-        "  docker run -p 4991:4991/tcp -p 40000:40000/tcp -p 40000:40000/udp -v ./data:/home/bun/.config/sharkord --name sharkord sharkord/sharkcord:latest"
-    );
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([1100.0, 720.0])
+            .with_min_inner_size([640.0, 420.0])
+            .with_title("sharkcordclient"),
+        ..Default::default()
+    };
+
+    eframe::run_native(
+        "sharkcordclient",
+        options,
+        Box::new(|cc| Ok(Box::new(ui::App::new(cc)))),
+    )
 }
+
+/// Convenience alias used by the UI module.
+pub(crate) type DesktopClient = Client;

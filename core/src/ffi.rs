@@ -17,10 +17,13 @@ use tokio::sync::RwLock;
 use crate::auth::{self, LoginRequest};
 use crate::bootstrap;
 use crate::error::CoreResult;
-use crate::state::{ChangeSet, ConnectionState, ServerState, SharedState};
+use crate::state::{ChangeSet, ServerState, SharedState};
 use crate::subscriptions::Subscriptions;
 use crate::trpc::TrpcClient;
 use crate::trpc::router;
+
+// Re-export ConnectionState for UI convenience.
+pub use crate::state::ConnectionState;
 
 /// Callbacks the UI implements to receive state-change notifications.
 /// Each method is fired on a core-owned thread; the UI must marshal back
