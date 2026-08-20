@@ -41,7 +41,7 @@ Native UIs are thin and consume the core:
 | Platform | UI | Binding |
 | --- | --- | --- |
 | Android | Kotlin / Jetpack Compose | UniFFI (`libsharkcord_core.so`) |
-| Linux / Windows | [Slint](https://slint.dev) (Rust) | direct |
+| Linux / Windows | [egui](https://github.com/emilk/egui) (Rust, immediate-mode, MIT) | direct |
 
 See [`docs/architecture.md`](docs/architecture.md) for the full design,
 [`docs/api-reference.md`](docs/api-reference.md) for the complete tRPC
@@ -54,16 +54,39 @@ envelope specification.
 ```
 sharkcordclient/
 ├─ core/       # sharkcord-core (shared Rust crate)
-├─ desktop/    # Slint desktop app (Linux + Windows)
-├─ android/    # Kotlin/Compose Android app (Phase 4)
+├─ desktop/    # egui desktop app (Linux + Windows)
+├─ android/    # Kotlin/Compose Android app (planned)
 ├─ docs/       # protocol + design documentation
 └─ scripts/    # build helpers
 ```
 
 ## Status
 
-Early development. Phase 0 (scaffolding + docs) is in progress. See
-`docs/architecture.md` for the milestone/phase plan.
+**Working (Phase 1 + 2):**
+
+- **Core** — tRPC-over-WebSocket client (real, with keepalive and
+  reconnect-friendly design), JWT login over HTTP, the mandatory
+  `handshake` → `joinServer` bootstrap, the realtime state store fed by
+  all text/voice-presence subscriptions, file upload + signed file
+  URLs, and the full **mediasoup voice signaling** layer (every `voice.*`
+  mutation/query typed; media plane abstracted behind a `MediaEngine`
+  trait).
+- **Desktop (Linux/Windows)** — egui connect screen, server view with
+  channel sidebar + text channel (message list, composer, reactions),
+  voice panel with join/leave and mic/sound/webcam/screen controls.
+
+**Not yet wired (needs live-server validation):**
+
+- The actual WebRTC media plane (the `voice-webrtc` feature gates
+  webrtc-rs; signaling is complete, RTP send/receive needs a running
+  Sharkord server to validate against).
+- Platform capture (Linux PipeWire / Windows WGC/WASAPI) — Phase 3.
+- Android app — Phase 4.
+- HTML message rendering is currently stripped to plain text; a proper
+  HTML→native renderer lands later.
+
+See [`docs/architecture.md`](docs/architecture.md) for the milestone/
+phase plan and current status.
 
 ## Compatibility
 
@@ -102,10 +125,10 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo fmt --all -- --check
 ```
 
-### Run the desktop app (once wired)
+### Run the desktop app
 
 ```sh
-cargo run -p sharkcord-desktop
+cargo run -p sharkcord-desktop --release
 ```
 
 ### Android

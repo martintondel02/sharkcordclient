@@ -73,11 +73,16 @@ Async runtime: `tokio` (multi-thread). The single WS connection
 multiplexes queries, mutations, and subscriptions; the voice engine's
 WebRTC IO runs on the same runtime.
 
-### `desktop` — Slint (Linux + Windows)
+### `desktop` — egui (Linux + Windows)
 
-A single binary per platform. Slint `.slint` files describe the UI
-(connect screen, sidebar, channel view, voice grid); `src/main.rs`
-wires Slint callbacks to `sharkcord-core`. Platform capture:
+A single binary per platform. [egui](https://github.com/emilk/egui) is
+an MIT-licensed immediate-mode GUI; we use it (instead of Slint, whose
+free license is GPLv3) so the whole app stays cleanly MIT. `src/main.rs`
+is the `eframe` entry; `src/ui.rs` is the `eframe::App` (connect form,
+server view with sidebar + text channel + voice panel); `src/observer.rs`
+bridges the core's async `ClientObserver` callbacks to egui repaints.
+
+Platform capture (Phase 3):
 - **Linux**: PipeWire (screen + system audio) + PulseAudio/PipeWire mic.
 - **Windows**: Windows Graphics Capture (screen) + WASAPI (mic + loopback).
 
@@ -136,11 +141,11 @@ chatter low across the FFI boundary on Android.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
-| 0 | Scaffolding: workspace, LICENSE/NOTICE/README, docs, CI. | **in progress** |
-| 1 | Core: tRPC WS client, auth, bootstrap, state, subscriptions, files. Desktop Slint connect + text channel. Validate against local Docker server. | pending |
-| 2 | Core: mediasoup voice engine (signaling + webrtc-rs transport, mic-only loopback). Biggest risk — prototype before UI work. | pending |
-| 3 | Desktop voice: platform capture (mic/webcam/screen), Slint voice grid + controls. | pending |
-| 4 | Android: UniFFI bindings, Compose UI (all screens), Android capture, voice UI. | pending |
+| 0 | Scaffolding: workspace, LICENSE/NOTICE/README, docs, CI. | **done** |
+| 1 | Core: tRPC WS client, auth, bootstrap, state, subscriptions, files. Desktop egui connect + text channel. | **done** |
+| 2 | Core: mediasoup voice signaling + media-plane abstraction. Desktop voice controls. | **done** (signaling; media plane pending live validation) |
+| 3 | Desktop platform capture (mic/webcam/screen): Linux PipeWire, Windows WGC/WASAPI. | pending |
+| 4 | Android: UniFFI bindings, Compose UI, Android capture. | pending |
 | 5 | Polish + packaging: notifications, reconnect, settings, i18n, F-Droid/Flatpak/MSI. | pending |
 
 ## Risks & mitigations
