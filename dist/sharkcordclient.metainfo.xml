@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.martintondel02.sharkcordclient</id>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <name>sharkcordclient</name>
+  <summary>Unofficial native client for Sharkcord</summary>
+  <description>
+    <p>
+      sharkcordclient is an unofficial, open-source, native desktop client
+      for Sharkcord — the lightweight, self-hosted chat platform with text,
+      voice, video, and screen sharing. Built with a Rust core and an egui
+      UI, it runs natively on Linux (and Windows).
+    </p>
+    <p>
+      Connect to any Sharkord server you run (self-hosted for privacy and
+      full data ownership), chat in text channels, and (in later releases)
+      join voice channels.
+    </p>
+    <p>
+      Not affiliated with the Sharkord project. Sharkcord is MIT-licensed.
+    </p>
+  </description>
+  <launchable type="desktop-id">sharkcordclient.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/martintondel02/sharkcordclient/master/docs/screenshot-connect.png</image>
+      <caption>Connect screen</caption>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://github.com/martintondel02/sharkcordclient</url>
+  <url type="bugtracker">https://github.com/martintondel02/sharkcordclient/issues</url>
+  <url type="vcs-browser">https://github.com/martintondel02/sharkcordclient</url>
+  <provides>
+    <binary>sharkcord-desktop</binary>
+  </provides>
+  <releases>
+    <release version="0.1.0" date="2026-08-20">
+      <description>
+        <p>Initial preview release: connect to a Sharkord server, browse channels, send and receive text messages, voice controls wired.</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">intense</content_attribute>
+    <content_attribute id="social-audio">intense</content_attribute>
+  </content_rating>
+  <developer id="io.github.martintondel02">
+    <name>sharkcordclient contributors</name>
+  </developer>
+</component>

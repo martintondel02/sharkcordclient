@@ -34,3 +34,12 @@ config.local.toml
 
 # Integration test scratch
 .scratch/
+
+# Packaging artifacts
+/vendor/
+.cargo/config.toml
+dist/flatpak/vendor.tar.gz
+dist/*.flatpak
+.flatpak-build/
+.flatpak-repo/
+target/generate-rpm/

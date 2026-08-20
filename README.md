@@ -90,11 +90,49 @@ phase plan and current status.
 
 ## Compatibility
 
-Tested against Sharkord server `sharkord/sharkcord:latest` (Docker).
+Tested against Sharkcord server `sharkcord/sharkcord:latest` (Docker).
 Because Sharkcord is alpha, expect protocol breaks; the
 [`core/src/compat`](core/src/compat) module will version the protocol
 surface as upstream evolves. The tested-against server version is
 recorded in [`docs/api-reference.md`](docs/api-reference.md).
+
+## Install on Fedora
+
+Two packaging options: **Flatpak** (recommended, sandboxed, works on any
+Linux) and **RPM** (native Fedora package).
+
+### Flatpak (recommended)
+
+```sh
+# One-time: enable Flathub + install the freedesktop Sdk + Rust extension
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install flathub org.freedesktop.Sdk//24.08 org.freedesktop.Platform//24.08
+flatpak install flathub org.freedesktop.Sdk.Extension.rust-stable//24.08
+sudo dnf install flatpak flatpak-builder
+
+# Build + install from source
+./scripts/build-flatpak.sh          # builds and installs into your user Flatpak
+# or, to also produce a shareable .flatpak bundle:
+./scripts/build-flatpak.sh --bundle # → dist/io.github.martintondel02.sharkcordclient.flatpak
+
+flatpak run io.github.martintondel02.sharkcordclient
+```
+
+### RPM (native Fedora package)
+
+```sh
+cargo install cargo-generate-rpm
+sudo dnf install mesa-libGL libX11 wayland-devel mesa-libEGL freetype fontconfig libstdc++
+
+./scripts/build-rpm.sh              # → target/generate-rpm/sharkcordclient-*.rpm
+sudo dnf install ./target/generate-rpm/sharkcordclient-*.rpm
+
+sharkcord-desktop                   # run it
+```
+
+The RPM installs the binary to `/usr/bin/sharkcord-desktop`, the desktop
+entry, the scalable icon, and the AppStream metainfo (so it shows up in
+GNOME Software / KDE Discover with the shark icon).
 
 ## Development
 

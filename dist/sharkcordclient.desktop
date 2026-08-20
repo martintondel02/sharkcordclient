@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=sharkcordclient
+GenericName=Chat Client
+Comment=Unofficial native client for Sharkcord
+Exec=sharkcord-desktop
+Icon=sharkcordclient
+Terminal=false
+Categories=Network;Chat;InstantMessaging;AudioVideo;
+Keywords=chat;voice;video;sharkcord;self-hosted;
+StartupNotify=true
+StartupWMClass=sharkcordclient

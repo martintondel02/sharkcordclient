@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="48" fill="#1e293b"/>
+  <!-- Shark fin -->
+  <path d="M64 196 C 88 100, 132 60, 168 60 C 188 60, 196 96, 192 196 Z" fill="#38bdf8"/>
+  <path d="M64 196 C 92 120, 132 88, 168 88 C 180 88, 186 112, 184 196 Z" fill="#0ea5e9"/>
+  <!-- Water line -->
+  <rect x="0" y="196" width="256" height="60" fill="#0f172a"/>
+  <path d="M0 196 Q 64 188, 128 196 T 256 196" stroke="#38bdf8" stroke-width="4" fill="none" opacity="0.6"/>
+  <!-- Eye -->
+  <circle cx="172" cy="76" r="4" fill="#0f172a"/>
+</svg>
