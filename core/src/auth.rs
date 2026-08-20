@@ -4,10 +4,6 @@
 //! endpoint (not tRPC). The token is then carried in the tRPC WebSocket
 //! connection params (`{ token }`) and in the `x-token` header for
 //! `POST /upload`. JWTs are stateless and valid for 7 days.
-//!
-//! This module is a stub; Phase 1 implements `login()` over HTTP and the
-//! [`TokenStore`] trait backed by platform secure storage (Android
-//! Keystore via FFI; OS keyring on desktop).
 
 use crate::error::CoreResult;
 use serde::{Deserialize, Serialize};
@@ -33,6 +29,12 @@ pub struct LoginResponse {
     pub token: String,
 }
 
+/// Error body returned by `/login` on `400` (validation/credentials).
+#[derive(Debug, Clone, Deserialize)]
+pub struct LoginError {
+    pub errors: serde_json::Value,
+}
+
 /// Abstraction over secure token storage.
 ///
 /// Implementations:
@@ -49,16 +51,64 @@ pub trait TokenStore: Send + Sync {
     fn clear(&self, identity: &str) -> CoreResult<()>;
 }
 
-/// Log in to a Sharkcord server and return the JWT.
+/// Log in to a Sharkord server and return the JWT.
 ///
 /// `origin` is e.g. `http://localhost:4991`. Performs `POST {origin}/login`.
-/// On a `429` the response carries a `Retry-After` header (surfaced via
-/// [`crate::CoreError::Other`] for now; Phase 1 will model it).
-///
-/// _Stub: implemented in Phase 1 alongside the HTTP client._
-#[allow(clippy::unused_async)] // stub: awaits land in Phase 1
-pub async fn login(_origin: &str, _req: LoginRequest) -> CoreResult<LoginResponse> {
-    Err(crate::CoreError::Other(
-        "auth::login not yet implemented (Phase 1)".to_owned(),
-    ))
+pub async fn login(origin: &str, req: &LoginRequest) -> CoreResult<LoginResponse> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/login", origin.trim_end_matches('/'));
+    let resp = client
+        .post(&url)
+        .json(req)
+        .send()
+        .await
+        .map_err(|e| crate::CoreError::Auth(format!("login request: {e}")))?;
+
+    match resp.status().as_u16() {
+        200 => resp
+            .json::<LoginResponse>()
+            .await
+            .map_err(|e| crate::CoreError::Auth(format!("decode login response: {e}"))),
+        400 => {
+            let body = resp
+                .text()
+                .await
+                .unwrap_or_else(|_| "unknown error".to_owned());
+            Err(crate::CoreError::Auth(format!(
+                "invalid credentials: {body}"
+            )))
+        }
+        429 => Err(crate::CoreError::Auth(
+            "rate limited; retry later".to_owned(),
+        )),
+        code => Err(crate::CoreError::Auth(format!("login failed: HTTP {code}"))),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn login_request_serializes_without_invite() {
+        let req = LoginRequest {
+            identity: "alice".to_owned(),
+            password: "hunter2".to_owned(),
+            invite: None,
+        };
+        let s = serde_json::to_string(&req).unwrap();
+        assert!(s.contains("\"identity\":\"alice\""));
+        assert!(!s.contains("invite"));
+    }
+
+    #[test]
+    fn login_request_serializes_with_invite() {
+        let req = LoginRequest {
+            identity: "bob".to_owned(),
+            password: "pw".to_owned(),
+            invite: Some("ABC".to_owned()),
+        };
+        let s = serde_json::to_string(&req).unwrap();
+        assert!(s.contains("\"invite\":\"ABC\""));
+    }
 }

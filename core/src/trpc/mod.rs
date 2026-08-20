@@ -7,11 +7,13 @@
 //! link and no OpenAPI/JSON-schema export — this module reimplements the
 //! tRPC v11 wire protocol by hand.
 //!
-//! See `docs/wire-protocol.md` for the envelope specification and
-//! `docs/api-reference.md` for the procedure reference.
+//! See [`client::TrpcClient`] for the live client, [`wire`] for the
+//! envelope spec, and `docs/api-reference.md` for the procedure reference.
 
+pub mod client;
 pub mod error;
 pub mod router;
 pub mod wire;
 
+pub use client::{SubscriptionHandle, TrpcClient};
 pub use error::TrpcError;

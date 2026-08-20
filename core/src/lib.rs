@@ -60,6 +60,9 @@ pub mod platform;
 /// The realtime state store, fed by tRPC subscriptions.
 pub mod state;
 
+/// The subscription runner that fans tRPC subscriptions into the state store.
+pub mod subscriptions;
+
 /// The mediasoup WebRTC voice engine.
 pub mod voice;
 

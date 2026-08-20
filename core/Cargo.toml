@@ -21,6 +21,12 @@ serde_json = "1.0"
 # and subscriptions, plus the mediasoup signaling + WebRTC IO.
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "net", "sync", "time", "io-util", "fs"] }
 
+# WebSocket transport for the tRPC client.
+tokio-tungstenite = { version = "0.30", features = ["rustls-tls-native-roots"] }
+
+# Stream/async utilities for the WS reader loop.
+futures-util = "0.3"
+
 # Error ergonomics.
 thiserror = "2"
 
@@ -35,6 +41,14 @@ bytes = "1"
 
 # `async fn` in dyn-compatible traits (platform capture).
 async-trait = "0.1"
+
+# Cancellation tokens for the WS background tasks.
+tokio-util = { version = "0.7", features = ["rt"] }
+
+# HTTP client for /login and /upload (no need for a heavy async-http lib).
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream"] }
+
+# Snowflake-like unique ids not needed; we reuse server ids.
 
 [dev-dependencies]
 tokio = { version = "1", features = ["test-util", "macros"] }

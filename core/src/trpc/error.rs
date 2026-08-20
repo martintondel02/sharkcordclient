@@ -47,7 +47,7 @@ impl From<TrpcError> for CoreError {
 
 /// Helper to convert a [`serde_json::Error`] into a [`TrpcError::Decode`].
 impl TrpcError {
-    #[allow(dead_code)] // used by the WS client in Phase 1
+    #[allow(dead_code)] // used by the WS client
     pub(crate) fn decode(err: &serde_json::Error) -> Self {
         Self::Decode(err.to_string())
     }
