@@ -1,0 +1,26 @@
+[package]
+name = "sharkcord-desktop"
+description = "Slint desktop app (Linux + Windows) for the unofficial sharkcordclient."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+sharkcord-core = { path = "../core" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Slint UI is added in Phase 1 once we render the connect screen.
+# slint = "1"
+
+[[bin]]
+name = "sharkcord-desktop"
+path = "src/main.rs"

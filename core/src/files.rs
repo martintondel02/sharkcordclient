@@ -1,0 +1,97 @@
+//! File upload (`POST /upload`) and signed file URLs.
+//!
+//! Sharkcord serves files over plain HTTP at `/public/<name>`; uploads
+//! go through a dedicated `POST /upload` endpoint authenticated by the
+//! `x-token` header (not the WebSocket). Upload returns a temp file id
+//! that is later referenced by `messages.send({ files: [tempId] })`,
+//! `users.changeAvatar`, etc. When the server has
+//! `storageSignedUrlsEnabled`, file URLs must carry an `accessToken`
+//! (and its expiry) appended as query params.
+//!
+//! Header names come from the upstream `UploadHeaders` enum
+//! (`x-file-name`, `x-file-type`, `content-length`, `x-token`).
+//!
+//! _Stub: implemented in Phase 1 alongside the HTTP client._
+
+use crate::error::CoreResult;
+use serde::{Deserialize, Serialize};
+
+/// Header names used by `POST /upload`. Matches the upstream
+/// `UploadHeaders` enum in `packages/shared/src/statics/permissions.ts`.
+pub mod headers {
+    pub const ORIGINAL_NAME: &str = "x-file-name";
+    pub const TYPE: &str = "x-file-type";
+    pub const CONTENT_LENGTH: &str = "content-length";
+    pub const TOKEN: &str = "x-token";
+}
+
+/// A freshly-uploaded temporary file, as returned by `POST /upload`.
+/// Maps to `TTempFile` upstream.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TempFile {
+    pub id: String,
+    pub original_name: String,
+    pub size: i64,
+    pub md5: String,
+    pub path: String,
+    pub extension: String,
+    pub user_id: i64,
+}
+
+/// Upload a file to `POST {origin}/upload`.
+///
+/// `token` is the JWT (sent in the `x-token` header). Returns the temp
+/// file id to pass to `messages.send` / `users.changeAvatar` / etc.
+///
+/// _Stub: implemented in Phase 1._
+#[allow(clippy::unused_async)] // stub: awaits land in Phase 1
+pub async fn upload(
+    _origin: &str,
+    _token: &str,
+    _file_name: &str,
+    _mime_type: &str,
+    _bytes: Vec<u8>,
+) -> CoreResult<TempFile> {
+    Err(crate::CoreError::Other(
+        "files::upload not yet implemented (Phase 1)".to_owned(),
+    ))
+}
+
+/// Build the URL for a stored file. When the server has signed URLs
+/// enabled, append `?accessToken=...&expires=...`.
+#[must_use]
+pub fn file_url(
+    origin: &str,
+    name: &str,
+    access_token: Option<&str>,
+    expires: Option<i64>,
+) -> String {
+    let base = format!("{origin}/public/{name}");
+    match (access_token, expires) {
+        (Some(tok), Some(exp)) => format!("{base}?accessToken={tok}&expires={exp}"),
+        (Some(tok), None) => format!("{base}?accessToken={tok}"),
+        _ => base,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn file_url_plain() {
+        assert_eq!(
+            file_url("http://h:4991", "abc.png", None, None),
+            "http://h:4991/public/abc.png"
+        );
+    }
+
+    #[test]
+    fn file_url_signed() {
+        assert_eq!(
+            file_url("http://h:4991", "abc.png", Some("tok"), Some(123)),
+            "http://h:4991/public/abc.png?accessToken=tok&expires=123"
+        );
+    }
+}

@@ -1,0 +1,45 @@
+[package]
+name = "sharkcord-core"
+description = "Shared core for the unofficial sharkcordclient: tRPC-over-WS protocol, auth, state, and the mediasoup voice engine for a Sharkcord server."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+# Serialization of tRPC envelopes + Sharkcord data models.
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Async runtime: a single WS connection multiplexes queries, mutations,
+# and subscriptions, plus the mediasoup signaling + WebRTC IO.
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "net", "sync", "time", "io-util", "fs"] }
+
+# Error ergonomics.
+thiserror = "2"
+
+# Structured logging.
+tracing = "0.1"
+
+# Monotonic, sortable ids for tRPC request correlation.
+uuid = { version = "1", features = ["v4"] }
+
+# Byte handling for RTP/RTCP in the voice engine.
+bytes = "1"
+
+# `async fn` in dyn-compatible traits (platform capture).
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["test-util", "macros"] }
+serde_json = "1.0"
+
+[lib]
+name = "sharkcord_core"
+path = "src/lib.rs"

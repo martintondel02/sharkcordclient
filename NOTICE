@@ -1,0 +1,28 @@
+NOTICE
+======
+
+sharkcordclient
+Copyright (c) 2026 sharkcordclient contributors
+Licensed under the MIT License (see LICENSE).
+
+------------------------------------------------------------------------
+
+This project is an unofficial, community-maintained native client for
+Sharkcord. It is NOT affiliated with, endorsed by, or sponsored by the
+Sharkord project or its team.
+
+Sharkcord
+  Source:   https://github.com/Sharkord/sharkord
+  License:  MIT (https://github.com/Sharkord/sharkord/blob/development/LICENSE)
+  Website:  https://sharkord.com
+
+sharkcordclient communicates with a user-supplied Sharkord server
+instance. The Sharkord name is used here only for factual, descriptive
+identification of the upstream project this client targets. All
+trademarks and project names belong to their respective owners.
+
+This client implements the Sharkcord network protocol (tRPC over
+WebSocket, mediasoup WebRTC signaling, and the documented HTTP
+endpoints) as an independent work based on the public, MIT-licensed
+upstream source. No Sharkord source code is included in this
+repository.
