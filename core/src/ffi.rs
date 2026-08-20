@@ -68,6 +68,8 @@ struct Inner {
     origin: RwLock<String>,
     /// The current JWT (for uploads).
     token: RwLock<String>,
+    /// The active voice engine, if joined to a voice channel.
+    voice: RwLock<Option<Arc<crate::voice::VoiceEngine>>>,
 }
 
 impl Client {
@@ -88,6 +90,7 @@ impl Client {
                 observer: RwLock::new(None),
                 origin: RwLock::new(String::new()),
                 token: RwLock::new(String::new()),
+                voice: RwLock::new(None),
             }),
         }
     }
@@ -154,9 +157,13 @@ impl Client {
         Ok(())
     }
 
-    /// Disconnect: stop subscriptions, close the WS, reset state.
+    /// Disconnect: stop subscriptions, leave voice, close the WS, reset state.
     pub async fn disconnect(&self) -> CoreResult<()> {
         let inner = &self.inner;
+        if let Some(engine) = inner.voice.write().await.take() {
+            let engine = Arc::clone(&engine);
+            let _ = engine.leave().await;
+        }
         if let Some(mut subs) = inner.subs.write().await.take() {
             subs.stop();
         }
@@ -368,6 +375,81 @@ impl Client {
     ) -> String {
         let origin = self.inner.origin.read().await.clone();
         crate::files::file_url(&origin, name, access_token, expires)
+    }
+
+    // -----------------------------------------------------------------
+    // Voice (Phase 2)
+    // -----------------------------------------------------------------
+
+    /// Join a voice channel and start the voice engine. Returns once the
+    /// signaling sequence (`voice.join`, transport creation, consume
+    /// existing producers) is complete.
+    pub async fn join_voice(&self, channel_id: i64) -> CoreResult<()> {
+        let inner = &self.inner;
+        let trpc = inner
+            .trpc
+            .read()
+            .await
+            .clone()
+            .ok_or_else(|| crate::CoreError::Disconnected("not connected".into()))?;
+        // Leave any existing voice channel first.
+        if let Some(old) = inner.voice.write().await.take() {
+            let _ = old.leave().await;
+        }
+        let state = crate::models::VoiceUserState::default();
+        let config = crate::voice::VoiceConfig::default();
+        let engine =
+            Arc::new(crate::voice::VoiceEngine::join(trpc, channel_id, state, config).await?);
+        *inner.voice.write().await = Some(engine);
+        if let Some(observer) = inner.observer.read().await.clone() {
+            observer.on_voice_state(channel_id);
+        }
+        Ok(())
+    }
+
+    /// Leave the current voice channel.
+    pub async fn leave_voice(&self) -> CoreResult<()> {
+        let inner = &self.inner;
+        if let Some(engine) = inner.voice.write().await.take() {
+            // Clone the Arc to avoid holding the lock across await.
+            let engine = Arc::clone(&engine);
+            drop(engine.leave().await);
+        }
+        Ok(())
+    }
+
+    /// Toggle mic mute.
+    pub async fn toggle_mic(&self) -> CoreResult<()> {
+        let engine = self.voice_engine().await?;
+        engine.toggle_mic().await
+    }
+
+    /// Toggle deafen (speakers).
+    pub async fn toggle_sound(&self) -> CoreResult<()> {
+        let engine = self.voice_engine().await?;
+        engine.toggle_sound().await
+    }
+
+    /// Toggle webcam.
+    pub async fn toggle_webcam(&self) -> CoreResult<()> {
+        let engine = self.voice_engine().await?;
+        engine.toggle_webcam().await
+    }
+
+    /// Toggle screen share.
+    pub async fn toggle_screen_share(&self) -> CoreResult<()> {
+        let engine = self.voice_engine().await?;
+        engine.toggle_screen_share().await
+    }
+
+    /// Get the active voice engine, or an error if not in a voice channel.
+    async fn voice_engine(&self) -> CoreResult<Arc<crate::voice::VoiceEngine>> {
+        self.inner
+            .voice
+            .read()
+            .await
+            .clone()
+            .ok_or_else(|| crate::CoreError::Voice("not in a voice channel".into()))
     }
 
     /// Block on a future using the client's runtime. Convenience for UIs

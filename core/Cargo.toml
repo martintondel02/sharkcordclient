@@ -48,6 +48,10 @@ tokio-util = { version = "0.7", features = ["rt"] }
 # HTTP client for /login and /upload (no need for a heavy async-http lib).
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream"] }
 
+# WebRTC media plane for the voice engine. Optional so text-only builds
+# (e.g. CI without a display) stay light.
+webrtc = { version = "0.21.0-beta", optional = true }
+
 # Snowflake-like unique ids not needed; we reuse server ids.
 
 [dev-dependencies]
@@ -57,3 +61,9 @@ serde_json = "1.0"
 [lib]
 name = "sharkcord_core"
 path = "src/lib.rs"
+
+[features]
+default = ["voice-webrtc"]
+# Enable the webrtc-rs backed media engine for voice. Disable for a
+# text-only build (smaller, no native webrtc deps).
+voice-webrtc = ["dep:webrtc"]

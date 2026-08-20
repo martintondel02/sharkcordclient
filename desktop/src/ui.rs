@@ -27,8 +27,8 @@ pub struct App {
     error: Option<String>,
     /// Scroll handle for the message list.
     scroll_to_bottom: bool,
-    /// Whether the snapshot changed since last frame.
-    changed: bool,
+    /// Whether we're currently in a voice channel (UI-side mirror of core state).
+    in_voice: bool,
 }
 
 #[derive(Clone)]
@@ -68,7 +68,7 @@ impl App {
             connecting: false,
             error: None,
             scroll_to_bottom: false,
-            changed: false,
+            in_voice: false,
         }
     }
 
@@ -112,6 +112,7 @@ impl App {
 
     fn do_disconnect(&mut self) {
         self.client.block_on(self.client.disconnect());
+        self.in_voice = false;
     }
 
     /// Render the connect screen.
@@ -262,7 +263,7 @@ impl App {
                 });
             });
 
-        // Right: voice channels summary (small panel, Phase 2 will render video).
+        // Right: voice channels + voice controls.
         egui::SidePanel::right("voice")
             .min_width(140.0)
             .default_width(180.0)
@@ -270,6 +271,42 @@ impl App {
             .show(ctx, |ui| {
                 ui.heading("Voice");
                 ui.separator();
+
+                // Voice controls (only meaningful when connected).
+                if self.in_voice {
+                    ui.horizontal(|ui| {
+                        if ui.button("🎤 Mic").clicked() {
+                            let _ = self.client.block_on(self.client.toggle_mic());
+                        }
+                        if ui.button("🔊 Sound").clicked() {
+                            let _ = self.client.block_on(self.client.toggle_sound());
+                        }
+                        if ui.button("🎥 Webcam").clicked() {
+                            let _ = self.client.block_on(self.client.toggle_webcam());
+                        }
+                        if ui.button("🖥 Screen").clicked() {
+                            let _ = self.client.block_on(self.client.toggle_screen_share());
+                        }
+                    });
+                    if ui.button("Leave voice").clicked() {
+                        let _ = self.client.block_on(self.client.leave_voice());
+                        self.in_voice = false;
+                    }
+                    ui.separator();
+                } else if let Some(channel_id) = snapshot.selected_channel_id {
+                    let is_voice_channel = snapshot
+                        .channel(channel_id)
+                        .is_some_and(|c| c.kind == ChannelType::Voice);
+                    if is_voice_channel && ui.button("Join voice channel").clicked() {
+                        let result = self.client.block_on(self.client.join_voice(channel_id));
+                        if result.is_ok() {
+                            self.in_voice = true;
+                        } else if let Err(err) = result {
+                            self.error = Some(format!("join voice failed: {err}"));
+                        }
+                    }
+                }
+
                 if snapshot.voice_map.is_empty() {
                     ui.label(
                         RichText::new("No active voice channels")
@@ -383,7 +420,6 @@ impl eframe::App for App {
             .changed
             .swap(false, std::sync::atomic::Ordering::Relaxed)
         {
-            self.changed = true;
             self.snapshot = Some(self.client.block_on(self.client.snapshot()));
         }
 
